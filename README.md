@@ -1,103 +1,109 @@
-# Discord Voice Bot (Rust Edition)
+# Discord Voice Bot
 
-High-performance Discord voice bot written in Rust, optimized for Raspberry Pi. Features real-time speech transcription using Vosk and an HTTP control interface. Replaces the legacy Node.js/Docker implementation handling UDP voice packets efficiently directly in Rust.
+A Rust implementation of a Discord bot that transcribes audio from voice channels using the Vosk speech recognition model and forwards transcriptions to an external API.
 
-## 🚀 Features
+## Features
 
-- **Rust Native**: Extremely low resource usage compared to Node.js/Docker.
-- **Speech-to-Text**: On-device transcription using Vosk (no cloud API fees).
-- **HTTP Control**: Rest API to control the bot externally.
-- **CI/CD Ready**: Scripts for automated updates.
+- Real-time audio transcription using Vosk
+- Discord voice channel integration via Songbird
+- Automatic forwarding of transcriptions to external API
+- Asynchronous processing with Tokio
+- Structured logging with tracing
 
-## 📦 Requirements
+## Prerequisites
 
-- Raspberry Pi 3B+ / 4 / 5 (ARM64 recommended)
-- Raspberry Pi OS (64-bit preferred)
-- Internet Connection
+- Rust 1.70 or later
+- Discord bot token
+- Vosk language model (download from https://alphacephei.com/vosk/models)
+- External API endpoint for receiving transcriptions
 
-## 🛠️ Setup (Raspberry Pi)
+## Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/dankcellar/discord-voice-bot.git
-   cd discord-voice-bot
-   ```
+1. Clone the repository:
+```bash
+git clone https://github.com/dankcellar/discord-voice-bot.git
+cd discord-voice-bot
+```
 
-2. **Run the Setup Script**:
-   This script installs Rust, system dependencies, downloads the Vosk model/library, and creates a default config.
-   ```bash
-   chmod +x setup_pi.sh
-   ./setup_pi.sh
-   ```
+2. Download a Vosk model:
+```bash
+# Example: English model
+wget https://alphacephei.com/vosk/models/vosk-model-en-us-0.22.zip
+unzip vosk-model-en-us-0.22.zip
+```
 
-3. **Configure**:
-   Edit `.env` and add your Discord Bot Token:
-   ```bash
-   nano .env
-   # DISCORD_TOKEN=your_token_here
-   ```
+3. Create a `.env` file from the example:
+```bash
+cp .env.example .env
+```
 
-4. **Run Manually (Test)**:
-   ```bash
-   chmod +x run_pi.sh
-   ./run_pi.sh
-   ```
+4. Edit `.env` with your configuration:
+```env
+DISCORD_TOKEN=your_discord_bot_token
+VOSK_MODEL_PATH=/path/to/vosk-model-en-us-0.22
+API_ENDPOINT=https://your-api.com/transcriptions
+```
 
-## 🤖 Hands-off Deployment (Systemd)
+## Building
 
-To run the bot as a background service that starts on boot:
+```bash
+cargo build --release
+```
 
-1. **Copy the service file**:
-   ```bash
-   sudo cp voice-bot.service /etc/systemd/system/
-   ```
+## Running
 
-2. **Reload Daemon and Start**:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable voice-bot
-   sudo systemctl start voice-bot
-   ```
+```bash
+cargo run --release
+```
 
-3. **Check Status**:
-   ```bash
-   sudo systemctl status voice-bot
-   ```
+## Configuration
 
-## 🔄 CI/CD (Continuous Deployment)
+The bot reads configuration from environment variables:
 
-To enable automatic updates whenever you push to the `main` branch, you can set up a cron job on the Pi to pull and rebuild periodically.
+- `DISCORD_TOKEN`: Your Discord bot token
+- `VOSK_MODEL_PATH`: Path to the Vosk model directory
+- `API_ENDPOINT`: URL of the external API to receive transcriptions
 
-1. **Test the update script**:
-   ```bash
-   chmod +x update_bot.sh
-   ./update_bot.sh
-   ```
+## API Payload Format
 
-2. **Add to Crontab** (Checks for updates every hour):
-   ```bash
-   crontab -e
-   ```
-   Add the following line:
-   ```bash
-   0 * * * * cd /home/pi/discord-voice-bot && ./update_bot.sh >> /home/pi/bot_update.log 2>&1
-   ```
+Transcriptions are sent to the external API as JSON:
 
-## 🎮 Usage
+```json
+{
+  "text": "transcribed text here",
+  "user_id": "123456789",
+  "timestamp": "2026-01-17T10:30:00Z"
+}
+```
 
-- **Discord Commands**:
-  - `!join`: Joins your voice channel.
-  - `!leave`: Leaves the voice channel.
+## Discord Bot Setup
 
-- **HTTP Control**:
-  - `POST http://pi-ip:3000/control`
-    ```json
-    { "type": "join", "guildId": 12345, "channelId": 67890 }
-    ```
+1. Create a bot at https://discord.com/developers/applications
+2. Enable the following privileged intents:
+   - Guild Voice States
+   - Guild Messages
+3. Invite the bot with the `bot` and `voice` scopes
+4. Required permissions: Connect, Speak, Use Voice Activity
 
-## 📂 Project Structure
+## Architecture
 
-- `src/main.rs`: Entry point.
-- `src/voice/`: Voice packet handling and Vosk integration.
-- `models/`: Stores the Speech-to-Text model.
-- `lib/`: Stores the Vosk shared library.
+- **serenity**: Discord API client
+- **songbird**: Voice channel support and audio handling
+- **vosk**: Speech recognition engine
+- **reqwest**: HTTP client for API calls
+- **tokio**: Async runtime
+
+## Performance
+
+The bot is optimized for production use with:
+- LTO (Link Time Optimization)
+- Maximum optimization level
+- Single codegen unit for better performance
+
+## License
+
+MIT
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first.
