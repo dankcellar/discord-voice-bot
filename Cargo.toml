@@ -6,26 +6,18 @@ edition = "2021"
 [dependencies]
 # Discord library
 serenity = { version = "0.12", features = ["client", "gateway", "rustls_backend", "model", "voice"] }
-# Voice support
-songbird = "0.4"
-# Async runtime
+# Voice support (with audio receiving enabled)
+songbird = { version = "0.5", features = ["receive"] }
+# Async runtime (required by serenity/songbird)
 tokio = { version = "1", features = ["full"] }
-# Vosk speech recognition
-vosk = "0.3"
-# HTTP client for API calls
-reqwest = { version = "0.11", features = ["json"] }
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-# Logging
-tracing = "0.1"
-tracing-subscriber = "0.3"
-# Error handling
-anyhow = "1.0"
 # Environment variables
 dotenv = "0.15"
+# Speech recognition
+vosk = "0.3"
+# Audio processing
+opus = "0.3"
 
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
+[build-dependencies]
+# For build script
+ureq = "2"
+zip = "7"

@@ -7,6 +7,10 @@ Cargo.lock
 # Environment variables
 .env
 
+# Vosk models and libraries (downloaded during build)
+/models/
+/lib/
+
 # IDE
 .vscode/
 .idea/
